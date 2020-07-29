@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Flap by dfx</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scaleable=0"/>
+    <style>
+        *
+            {
+                width: 100%;
+                height: 100%;
+            }
+    </style>
+</head>
+
+<body id="debug" style="height: 100%; margin: 0px; padding: 0px; overflow: auto; touch-action: none;">
+    <canvas style="touch-action: none; height: 100%; border: 0px solid black; border-radius: 0px; display: block; padding: 0px; margin: auto" id="gc" style="margin: auto;"></canvas>
+    <!--p id="about" style="display: block; width: 80%; font-size: 8px; text-align: center; margin: auto; padding: 4px;">A Flappy Bird clone by Danial Fitri. Tap/Press any key to play/retry</p-->
+    <input type="text" id="devtools" style="width: 80%; margin: auto; padding: auto; display: none"></input>
+
+    <script>
+        var console = document.getElementById("devtools");
+        console.addEventListener("keydown", commands);
+        if (window.location.hash == "#debug")
+        {
+            console.style.display = "block";
+            document.getElementById("about").style.display = "none";
+        }
+        
+        var c = document.getElementById("gc");
+        c.width = 240;
+        c.height = 400;
+        var ctx = c.getContext("2d");
+        ctx.textAlign = "center";
+        ctx.lineWidth = 2;
+        c.addEventListener("touchstart", touch);
+        c.addEventListener("keydown", down);
+        
+        var w = Math.round(c.width / 9);
+        var h = c.height / 20;
+        var x = c.width / 2 - w / 2;
+        var over = false;
+        var y = c.width / 2 + h / 2;
+        var g = 5.7;
+        var vY = 1;
+        var t = 16;
+        var pts = 0;
+        var best = 0;
+        
+        var birdR = new Image();
+        var birdF = new Image();
+        birdR.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAgCAYAAACPb1E+AAAACXBIWXMAADXUAAA11AFeZeUIAAADCElEQVRYCe1W2XLbMAykqGj6h00+se0vqiSLhbAyeDl27Id0xpyheQC7WIKHvARXYoxuVHVTznlqrDy/Plhm0KnBAYr11TddFkLR2fne2iU2rLJ6AVUxWpK3dqIZV+DyVrkz0CMi/wbVGJAAxELtEtdNNFu+7zn/EODdQrZLxgUuBIcY7fOHq+RY2rSntElbxetEOgC6qcS4Sgu+CgjjtQKQLyOR3m79JG0LDdg/GLioTvRyZGAqUBZh/E9pQKZbnhJkieJ1VXEx/RaVhzyeC0bO4hrhPqvIEJbeVgRwBXBys1UzxCCYVSYDPqoB9vMmiFA4xPVd9rWoJpDk8Emm4q8szgf38hMQIakx+nyVgrhHWRbNCCa6nYOO7UN0rKvoS1h7//Yhq+WPBDrgzKjR392oQGQDBeJMIIk0Y3JZdJlMI3cWQsUxaiZNEIGaUawImbF3jDZtsYhrxV2SKBlUPhOnfWCRbT0q60ptSkktFl8z6jPl+zMNWPktdYSvxLiFeF9qUF8mg5MjR8y1dj0EPHse5Obac0YOth4268M3ktMDuVJtxcHbPJmKWD8i/QPJxKkVeJ5BuzgnZ3O5PL/2PaeeSbnNvChBbnfE2Io+QdJXQe6VleczF0cU7CYqbNvw0dAC0UnOYxR7FqEqEufTtlsXdSqXOIgtt1uL5yxySIscWH/WiNvlD0XEnwrWA97/4gazIktNnb6TCOTq6SdcWJhyYiWXvB1vsmbNtmPfQ+i+3XLjO5UgZHGZ5BQzd47ZYTZsnIQZ4vR9pA+2uztHJhA+DQdh4xafMBbHwamuHZG3AgE6vzhkuIUcvgzAnHqBsPsnZsRJPHwfLf4oVFwI8tVAxPLPCVuhHMa7Jc4QWCl+YGACoWMapzuPg3gEV75cHbd7gJtOEQsHww9jkKA7kzS4li8AiWiiPh8TNsy3c8SwhQ/96FslgY5opwY8Ke1lINCeG5LnmR/9fdtgYarwZveQ/nZX1usDZvK619h6F5bZGFN9k9mXyGdtxCuTr0w+KwPP4vkvzuQ/swEuHyxWGZ0AAAAASUVORK5CYII=";
+        birdF.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAgCAYAAACPb1E+AAAACXBIWXMAADXUAAA11AFeZeUIAAAC+0lEQVRYCe1Wia7bIBDE+EX9w7a/2P6iC+7MmuEthxsnjVRVChJm2WN2WI5kCa7FGN2sEVPO+dTYeD45SSmtCM2z8GWm7HR7mZtv+lyISE+BO4x+qtiwYvUwNjl6549e0c2b4P2jcVeivyH5KxjHwAIwF/tQuEHRbfm25fwFgQ8TuX1WHOEAOMiYrI9WqTnGtKV0w9jkG0i6AIppj5FnhXhNII1/agzybUbS24ucMPahlpwGlXqIW1AB9IcIDiDXFSyGHTFcpMDORmVMP/A5aiqy2okMt0hX8lQvxEm+9rxtgZ1lGEqBHYFa2BqhggFEjARkjCoGfYyD7PQNIJr3n5WsQGPg2Sq9I6BkGg10A9Gu2fOFZHnf98BeWhWk4EgeLNi6ruRgmPbpnIIjO9iLLwHMj75o2YOa5viIINYZ47Isgd01Eo24LFJZJbWzwjyYNnFHybkiRGa+Y+h8zwRkwCJHJWTDISh6PRYIjahc5otRyFUQvSLw5wKPZNyzwqXkt4r6SnlZhPrRtqgQpK3GON10G3sgnu9JE54Zhdm8ziVIjpx6mfO25tTcbz3G/YiSd/l6uHqSZE9AG+FwCq5gQmi1lGeN26wLA7licrtPqmkwLsdiJDM2SGdh/RYi56XZEwR5ujdy6kedN+hZ+URy5XYbSRIvBG1nKnPkYe7b9wMRMfaa1Up25Ggksc2enyPm5HuX/wrSvFCOi0H1BE1JHhQKQQM3kjCoiRyfDOleMVpFrgJ5goyZXgRHMOFpHn7wfTL3NHn1sMjZ+ZuUYfoHo263MjiCUj01elIzzAnBp/Iw6PMKPQ0xBpIgO/5hmVEjVaboPlcWdBp4JbjLN0wLQeM8GItieiY7Z5FsfEXw7t3uwDhVLOUSP81BO9twJg918yU5gghIRvHzOWmjvtcpRiN95Cffpghy5HhqwDPAH3fvW2Xa0ARufxCq8Y7QxdK7iS/2BuVKJZsAN1Elneqy+FCsqnEZ/V84vkm+qurvSr4r+aoKvArnvziTvwGvvTg1RWYZwwAAAABJRU5ErkJggg==";
+        
+        var rand = true;
+        var randGrnd = true;
+        var randSky = true;
+        var rank = "white";
+        
+        var color;
+        var grnd;
+        var sky;
+        
+        if (localStorage.best)
+        {
+            best = Number(localStorage.getItem("best"));
+        }
+        
+        var play = false;
+        
+        var hole = Math.floor(c.height / 4.8);
+        var px = c.width * 2;
+        var py = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+        var pw = Math.floor(c.width / 6);
+        var px2 = px + 132;
+        var py2 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+        var px3 = px2 + 132;
+        var py3 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+        
+        setColor(Math.floor(1 + Math.random() * 5));
+        setGrnd(Math.floor(1 + Math.random() * 4));
+        setSky(Math.floor(1 + Math.random() * 4));
+        
+        //var thread = window.setInterval(update, 1000/60);
+        var thread = window.requestAnimationFrame(update);
+        if (thread == undefined)
+            var thread = window.setInterval(update, 1000/60);
+        
+        function touch(evt)
+        {
+            //ctx.fillStyle = "#ffffff";
+            //ctx.fillRect(evt.touches[0].pageX / c.getBoundingClientRect().right * c.width, evt.touches[0].pageY / c.getBoundingClientRect().bottom * c.height, 1, 1);
+            vY = g;
+            if (!over)
+                play = true;
+            
+            if (over && evt.touches[0].pageY / c.getBoundingClientRect().bottom * c.height >= c.height - c.height / 5)
+            {
+                setup();
+            }
+        }
+        
+        function down(evt)
+        {
+            vY = g;
+            if (!over)
+                play = true;
+            
+            if (over)
+            {
+                setup();
+            }
+        }
+        
+        var clip = true;
+        
+        function update()
+        {
+            if (play)
+            {
+                vY -= g / t;
+                if (vY < -g)
+                {
+                    vY = -g;
+                }
+                y -= Math.round(vY);
+                
+                if (y < 0)
+                {
+                    y = 0;
+                }
+                
+                if (y + w >= c.height - c.height / 5)
+                {
+                    y = c.height - c.height / 5 - h;
+                    localStorage.setItem("best", best);
+                    play = false;
+                    over = true;
+                    
+                    //window.clearInterval(thread);
+               }
+               
+               px -= 1.5;
+               px2 -= 1.5;
+               px3 -= 1.5;
+                   
+               if ((((y < py || y + h >= py + hole) && (x + w >= px && x < px + pw)) || ((y < py2 || y + h >= py2 + hole) && (x + w >= px2 && x < px2 + pw)) || ((y < py3 || y + h >= py3 + hole) && (x + w >= px3 && x < px3 + pw)) || ((x + w >= px && x < px + w) && (y <= py || y + h > py + hole)) || ((x + w >= px2 && x < px2 + w) && (y <= py2 || y + h > py2 + hole)) || ((x + w >= px3 && x < px3 + w) && (y <= py3 || y + h > py3 + hole))) && clip)
+               {
+                   if (y < py && (x + w >= px + 1 && x < px + pw))
+                   {
+                       y += py - y;
+                   }
+                   
+                   else if (y < py2 && (x + w >= px2 + 1 && x < px2 + pw))
+                   {
+                       y += py2 - y;
+                   }
+                   
+                   else if (y < py3 && (x + w >= px3 + 1 && x < px3 + pw))
+                   {
+                       y += py3 - y;
+                   }
+                   
+                   else if (y + h >= py + hole && (x + w >= px + 1 && x < px + pw))
+                   {
+                       y -= y + h - (py + hole);
+                   }
+                   
+                   else if (y + h >= py2 + hole && (x + w >= px2 + 1 && x < px2 + pw))
+                   {
+                       y -= y + h - (py2 + hole);
+                   }
+                   
+                   else if (y + h >= py3 + hole && (x + w >= px3 + 1 && x < px3 + pw))
+                   {
+                       y -= y + h - (py3 + hole);
+                   }
+                   
+                   localStorage.setItem("best", best);
+                   play = false;
+                   over = true;
+                    
+                   //window.clearInterval(thread);
+               }
+                
+               if (x + w / 2 == Math.floor(px + pw / 2) || x + w / 2 == Math.floor(px2 + pw / 2) || x + w / 2 == Math.floor(px3 + pw / 2))
+               {
+                   pts++;
+                   if (pts > best)
+                   {
+                       best = pts;
+                   }
+                   
+                   if (pts >= 10 && pts < 20)
+                       rank = "#cd7f32";
+                   else if (pts >= 20 && pts < 30)
+                       rank = "silver";
+                   else if (pts >= 30)
+                       rank = "gold";
+               }
+               
+               if (px + pw <= 0)
+               {
+                   px = px3 + 132;
+                   py = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+               }
+               
+               if (px2 + pw <= 0)
+               {
+                   px2 = px + 132;
+                   py2 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+               }
+               
+               if (px3 + pw <= 0)
+               {
+                   px3 = px2 + 132;
+                   py3 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+               }
+           }
+           
+           ctx.fillStyle = sky;
+           ctx.fillRect(0, 0, c.width, c.height);
+           ctx.fillStyle = "darkgreen";
+           ctx.fillRect(px, py, pw, hole);
+           ctx.fillRect(px2, py2, pw, hole);
+           ctx.fillRect(px3, py3, pw, hole);
+           ctx.fillStyle = "green";
+           ctx.fillRect(px, 0, pw, py);
+           ctx.fillRect(px, py + hole, pw, c.height - Math.floor(py + hole));
+           ctx.fillRect(px2, 0, pw, py2);
+           ctx.fillRect(px2, py2 + hole, pw, c.height - Math.floor(py2 + hole));
+           ctx.fillRect(px3, 0, pw, py3);
+           ctx.fillRect(px3, py3 + hole, pw, c.height - Math.floor(py3 + hole));
+           ctx.strokeRect(px, -1, pw, py);
+           ctx.strokeRect(px, py + hole, pw, c.height - Math.floor(py + hole));
+           ctx.strokeRect(px2, -1, pw, py2);
+           ctx.strokeRect(px2, py2 + hole, pw, c.height - Math.floor(py2 + hole));
+           ctx.strokeRect(px3, -1, pw, py3);
+           ctx.strokeRect(px3, py3 + hole, pw, c.height - Math.floor(py3 + hole));
+           ctx.fillStyle = color;
+           ctx.fillRect(x, y, w, h);
+            (vY > 0) ? ctx.drawImage(birdR, x - 8, y - 1) : ctx.drawImage(birdF, x - 8, y - 1);
+           ctx.fillStyle = rank;
+           ctx.font = Math.round(c.width / 10) + "px Serif";
+           if (over)
+               ctx.fillText(pts + " pts | Best: " + best, Math.round(c.width / 2), Math.floor(c.height / 4));
+           else if (!play)
+               ctx.fillText("Best: " + best + " pts", Math.round(c.width / 2), Math.floor(c.height / 4));
+           else
+           {
+               ctx.font = Math.round(c.width / 5) + "px Serif";
+               ctx.fillText(pts, Math.round(c.width / 2), Math.floor(c.height / 4 + c.height / 40));
+           }
+           ctx.fillStyle = grnd;
+           ctx.fillRect(0, c.height - c.height / 5, c.width, c.height / 5);
+           ctx.strokeRect(-1, c.height - c.height / 5, c.width + 2, c.height / 5 + 1);
+           
+           if (!over)
+           {
+               window.requestAnimationFrame(update);
+           }
+           
+           else if (over)
+           {
+               ctx.font = Math.round(c.width / 10) + "px Serif";
+               ctx.fillStyle = "black";
+               ctx.fillText("Retry", Math.round(c.width / 2), c.height - c.height / 5 + c.height / 10);
+           }
+       }
+        
+       function setup()
+       {
+           over = false;
+           x = c.width / 2 - w / 2;
+           y = c.width / 2 + h / 2;
+           vY = 1;
+           pts = 0;
+           px = c.width * 2;
+           py = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+           px2 = px + 132;
+           py2 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+           px3 = px2 + 132;
+           py3 = Math.floor(Math.floor(c.height * 0.1) + Math.random() * Math.floor((c.height - c.height / 5) * 0.8 - hole));
+           
+           if (rand) setColor(Math.floor(1 + Math.random() * 5));
+           if (randSky) setSky(Math.floor(1 + Math.random() * 4));
+           if (randGrnd) setGrnd(Math.floor(1 + Math.random() * 4));
+           rank = "white";
+           
+           //thread = window.setInterval(update, 1000/60);
+           thread = window.requestAnimationFrame(update);
+       }
+       
+       function commands(evt)
+       {
+           if (evt.keyCode == 13)
+           {
+               if (console.value == "-clip 0")
+               {
+                   clip = false;
+                   console.value = "";
+               }
+               
+               if (console.value == "-clip 1")
+               {
+                   clip = true;
+                   console.value = "";
+               }
+               
+               if (console.value.substr(0, 8) == "-setbest")
+               {
+                   best = parseInt(console.value.substr(9), 10);
+                   localStorage.setItem("best", best);
+                   console.value = "";
+               }
+               
+               if (console.value.substr(0, 7) == "-setpts")
+               {
+                   pts = parseInt(console.value.substr(8), 10);
+                   console.value = "";
+               }
+               
+               if (console.value.substr(0, 7) == "-setclr")
+               {
+                   setColor(parseInt(console.value.substr(8), 10));
+                   console.value = "";
+               }
+               
+               if (console.value.substr(0, 7) == "-setsky")
+               {
+                   setSky(parseInt(console.value.substr(8), 10));
+                   console.value = "";
+               }
+               
+               if (console.value.substr(0, 8) == "-setgrnd")
+               {
+                   setGrnd(parseInt(console.value.substr(9), 10));
+                   console.value = "";
+               }
+               
+               else
+               {
+                   console.value = "";
+               }
+           }
+       }
+       
+       function setColor(num)
+       {
+           switch (num)
+           {
+               case 0:
+                   rand = rand ? false : true;
+                   break;
+               case 1:
+                   color = "mediumslateblue";
+                   break;
+               case 2:
+                   color = "lemonchiffon";
+                   break;
+               case 3:
+                   color = "dodgerblue";
+                   break;
+               case 4:
+                   color = "aquamarine";
+                   break;
+               case 5:
+                   color = "lightcoral";
+           }
+       }
+       
+       function setSky(num)
+       {
+           switch (num)
+           {
+               case 0:
+                   randSky = randSky ? false : true;
+                   break;
+               case 1:
+                   sky = "skyblue";
+                   break;
+               case 2:
+                   sky = "midnightblue";
+                   break;
+               case 3:
+                   sky = "#fa7b62";
+                   break;
+               case 4:
+                   sky = "#001a26";
+           }
+       }
+       
+       function setGrnd(num)
+       {
+           switch (num)
+           {
+               case 0:
+                   randGrnd = randGrnd ? false : true;
+                   break;
+               case 1:
+                   grnd = "springgreen";
+                   break;
+               case 2:
+                   grnd = "moccasin";
+                   break;
+               case 3:
+                   grnd = "#98482b";
+                   break;
+               case 4:
+                   grnd = "aliceblue";
+           }
+       }
+    </script>
+</body>
+
+</html>

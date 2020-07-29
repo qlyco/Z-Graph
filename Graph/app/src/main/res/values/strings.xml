@@ -1,0 +1,41 @@
+<resources>
+    <string name="danial">Danial Fitri Ghazali (dot cat)</string>
+    <string name="programmer">- Programming -</string>
+    <string name="graph_desc">Graph Display</string>
+    <string name="lt_desc">Change to Less Than Mode</string>
+    <string name="gt_desc">Change to Greater Than Mode</string>
+    <string name="mark_desc">Mark Current Z Value to use Two Z Values</string>
+    <string name="inc_desc">Increment Z Value by 0.01</string>
+    <string name="dec_desc">Decrement Z Value by 0.01</string>
+    <string name="app_name">Z-Graph</string>
+    <string name="value">P (Z &lt;\u0020+0.00)</string>
+    <string name="prob">= 0.50000</string>
+    <string name="lowlimit">-4.09</string>
+    <string name="uplimit">+4.09</string>
+    <string name="mid">•</string>
+
+    <string name="title">NORMAL DISTRIBUTION</string>
+    <string name="normal_distribution">Normal Distribution</string>
+    <string name="credits">Credits</string>
+    <string name="communicate">Communicate</string>
+
+    <string name="open_nav">Open Navigation Drawer</string>
+    <string name="close_nav">Close Navigation Drawer</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="poisson">Poisson</string>
+    <string name="x_value">X Value</string>
+    <string name="lambda">λ Value</string>
+    <string name="lambda_sym">λ</string>
+    <string name="calculate">Calculate</string>
+    <string name="result_poisson">= 0.00</string>
+    <string name="bernoulli_trial">Bernoulli Trial</string>
+    <string name="mohamed_faizal_mohamed_noor">Mohamed Faizal Mohamed Noor</string>
+    <string name="asmira_senafi">Asmira Senafi</string>
+    <string name="azman_baharudin">Azman Baharudin</string>
+    <string name="mohamad_sabri_ismail">Mohamad Sabri Ismail</string>
+    <string name="asrol_shariff">Asrol Shariff</string>
+    <string name="nuraiza_matsah">Nuraiza Matsah</string>
+    <string name="kmk_mathematics_unit">- KMK Mathematics Unit -</string>
+
+</resources>

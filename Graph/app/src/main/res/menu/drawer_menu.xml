@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/normal"
+            android:title="@string/normal_distribution" />
+        <item
+            android:id="@+id/poisson"
+            android:title="@string/poisson" />
+        <item
+            android:id="@+id/bernoulli"
+            android:title="@string/bernoulli_trial" />
+    </group>
+
+    <item android:title="@string/communicate">
+        <menu>
+            <item
+                android:id="@+id/credits"
+                android:title="@string/credits" />
+        </menu>
+    </item>
+
+</menu>
